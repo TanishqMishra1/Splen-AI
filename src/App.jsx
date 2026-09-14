@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import OpenAI from "openai";
 
@@ -29,7 +31,7 @@ export default function App() {
 
     try {
       const completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-20b",
         messages: [
           {
             role: "system",
@@ -134,20 +136,114 @@ export default function App() {
         </div>
 
         <div className="mt-8 rounded-3xl border border-cyan-500/15 bg-[#07111f] p-6">
-          <h3 className="text-xl tracking-[0.25em] uppercase text-cyan-300 mb-6">Activity Feed</h3>
+
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl tracking-[0.25em] uppercase text-cyan-300">
+              Activity Feed
+            </h3>
+
+            <span className="text-xs text-cyan-500 tracking-widest">
+              LIVE SYSTEM OUTPUT
+            </span>
+          </div>
+
           <AnimatePresence>
-            {feed.map((item, i) => (
-              <motion.div key={item + i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className="relative bg-[#07111f] border border-cyan-500/10 rounded-xl p-3 mb-2 overflow-hidden">
-                <div className="absolute left-0 top-0 h-full w-[2px] bg-cyan-400" />
-                <div className="pl-3 whitespace-pre-wrap text-sm leading-7 text-cyan-100">
-                  {typeof item === "string"
-                    ? item
-                    : item.content}
-                </div>
-              </motion.div>
-            ))}
+            {feed.map((item, i) => {
+
+              const content = typeof item === "string"
+                ? item
+                : item.content;
+
+              return (
+                <motion.div
+                  key={item + i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative bg-[#07111f] border border-cyan-500/10 rounded-xl p-4 mb-3 overflow-hidden"
+                >
+
+                  {/* Left Accent Line */}
+                  <div className="absolute left-0 top-0 h-full w-[2px] bg-cyan-400" />
+
+                  {/* Timestamp / Status */}
+                  <div className="flex items-center gap-2 mb-2 pl-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="text-[10px] tracking-widest text-cyan-500 uppercase">
+                      System Response
+                    </span>
+                  </div>
+
+                  {/* AI Response */}
+                  <div className="pl-3 text-sm leading-7 text-cyan-100">
+
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ children }) => (
+                          <h1 className="text-2xl font-semibold text-cyan-300 mb-4">
+                            {children}
+                          </h1>
+                        ),
+
+                        h2: ({ children }) => (
+                          <h2 className="text-xl font-semibold text-cyan-300 mb-3 mt-4">
+                            {children}
+                          </h2>
+                        ),
+
+                        h3: ({ children }) => (
+                          <h3 className="text-lg text-cyan-200 mb-2 mt-3">
+                            {children}
+                          </h3>
+                        ),
+
+                        p: ({ children }) => (
+                          <p className="mb-3 text-cyan-100/90">
+                            {children}
+                          </p>
+                        ),
+
+                        strong: ({ children }) => (
+                          <strong className="text-cyan-300 font-semibold">
+                            {children}
+                          </strong>
+                        ),
+
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside space-y-1 mb-3">
+                            {children}
+                          </ul>
+                        ),
+
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside space-y-1 mb-3">
+                            {children}
+                          </ol>
+                        ),
+
+                        code: ({ inline, children }) =>
+                          inline ? (
+                            <code className="bg-cyan-950/50 text-cyan-300 px-1.5 py-0.5 rounded">
+                              {children}
+                            </code>
+                          ) : (
+                            <pre className="bg-[#01060c] border border-cyan-500/20 rounded-xl p-4 overflow-x-auto my-4">
+                              <code className="text-green-300 text-xs">
+                                {children}
+                              </code>
+                            </pre>
+                          ),
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
+
+                  </div>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
+
         </div>
       </div>
     </div>
